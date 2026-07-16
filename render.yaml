@@ -1,0 +1,20 @@
+# One-click deploy blueprint for Render (https://render.com)
+# Set MONGODB_URI (Atlas connection string) and BASE_URL (this service's
+# public URL) in the Render dashboard after the first deploy.
+services:
+  - type: web
+    name: amplify-affiliate-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: BASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: WEBHOOK_SECRET
+        sync: false
