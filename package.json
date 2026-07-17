@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
+    "dev": "nodemon src/server.js",
     "seed": "node src/seed/seed.js",
     "smoke-test": "node scripts/smoke-test.mjs"
   },
@@ -21,5 +21,8 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }
