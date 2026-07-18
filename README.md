@@ -14,6 +14,18 @@ This is one of three repos:
 | [affiliate-dashboard](https://github.com/rahulkumar345/affiliate-dashboard) | Back-office web app for the affiliate & finance teams (React + Vite) |
 | [affiliate-app](https://github.com/rahulkumar345/affiliate-app) | Affiliate-facing mobile app (React Native / Expo) |
 
+## Live demo
+
+| Surface | URL |
+|---|---|
+| **API** (Render) | https://amplify-affiliate-api.onrender.com — [health](https://amplify-affiliate-api.onrender.com/api/health) · [demo store](https://amplify-affiliate-api.onrender.com/store) |
+| **Dashboard** (Vercel) | https://affiliate-dashboard-roan-eta.vercel.app |
+| **Try a real share link** | https://amplify-affiliate-api.onrender.com/r/PRIYA4KM — buy something, then watch it appear as a pending commission in the dashboard |
+
+Dashboard logins: `admin@amplify.dev` / `Admin123!` (affiliate team) · `finance@amplify.dev` / `Finance123!` (finance team). The mobile APK ships pointed at this API.
+
+> **Free-tier note:** the API spins down when idle — the first request after a quiet spell takes ~50 s to wake, then it's fast again.
+
 ## How the pieces talk
 
 ```
