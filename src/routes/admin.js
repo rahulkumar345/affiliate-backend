@@ -64,13 +64,14 @@ router.get(
 router.get(
   '/affiliates',
   asyncHandler(async (req, res) => {
-    const [affiliatesList, clickRowsList, conversionRowsList, earningRowsList] = await Promise.all([
+    const [affiliatesList, clickRowsList, conversionRowsList, earningRowsList, config] = await Promise.all([
       User.find({ role: 'affiliate' }).sort({ createdAt: -1 }),
       Click.aggregate([{ $group: { _id: '$affiliateId', count: { $sum: 1 } } }]),
       Conversion.aggregate([{ $group: { _id: '$affiliateId', count: { $sum: 1 } } }]),
       Commission.aggregate([
         { $group: { _id: { affiliateId: '$affiliateId', status: '$status' }, totalCents: { $sum: '$amountCents' } } },
       ]),
+      ProgramConfig.get(),
     ]);
 
     const clicksByAffiliateMap = Object.fromEntries(clickRowsList.map((r) => [String(r._id), r.count]));
@@ -83,6 +84,8 @@ router.get(
     }
 
     res.json({
+      // The program-wide fallback rate, so the UI can label affiliates who have no override.
+      defaultRatePercent: config.commissionRatePercent,
       affiliatesList: affiliatesList.map((a) => {
         const key = String(a._id);
         const earningsMap = earningsByAffiliateMap[key] || {};
@@ -91,6 +94,8 @@ router.get(
           name: a.name,
           email: a.email,
           referralCode: a.referralCode,
+          // null = no override, this affiliate earns at defaultRatePercent
+          commissionRatePercent: a.commissionRatePercent ?? null,
           payoutMethodSet: Boolean(a.payoutMethodMap),
           clicksCount: clicksByAffiliateMap[key] || 0,
           conversionsCount: conversionsByAffiliateMap[key] || 0,
@@ -102,6 +107,30 @@ router.get(
         };
       }),
     });
+  })
+);
+
+// Set (or clear) a single affiliate's commission-rate override.
+// Only affects future conversions — past commissions keep their snapshotted rate.
+router.patch(
+  '/affiliates/:id/rate',
+  requireRole('admin'),
+  asyncHandler(async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.id)) throw notFound('Affiliate not found');
+    const { commissionRatePercent } = req.body || {};
+    // null clears the override → affiliate falls back to the program-wide rate.
+    if (commissionRatePercent !== null) {
+      if (typeof commissionRatePercent !== 'number' || commissionRatePercent < 0 || commissionRatePercent > 100) {
+        throw badRequest('commissionRatePercent must be null or a number between 0 and 100');
+      }
+    }
+
+    const affiliate = await User.findOne({ _id: req.params.id, role: 'affiliate' });
+    if (!affiliate) throw notFound('Affiliate not found');
+
+    affiliate.commissionRatePercent = commissionRatePercent;
+    await affiliate.save();
+    res.json({ id: affiliate._id, commissionRatePercent: affiliate.commissionRatePercent ?? null });
   })
 );
 

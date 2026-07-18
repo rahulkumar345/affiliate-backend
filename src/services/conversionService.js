@@ -34,14 +34,16 @@ export async function recordConversion({ externalOrderId, referralCode, orderAmo
   }
 
   const config = await ProgramConfig.get();
-  const amountCents = Math.round((orderAmountCents * config.commissionRatePercent) / 100);
+  // Per-affiliate override wins; otherwise fall back to the program-wide rate.
+  const effectiveRatePercent = affiliate.commissionRatePercent ?? config.commissionRatePercent;
+  const amountCents = Math.round((orderAmountCents * effectiveRatePercent) / 100);
 
   const commission = await Commission.create({
     affiliateId: affiliate._id,
     conversionId: conversion._id,
     externalOrderId,
     orderAmountCents,
-    ratePercent: config.commissionRatePercent,
+    ratePercent: effectiveRatePercent,
     amountCents,
     status: 'pending',
     statusHistoryList: [historyEntryMap(null, 'pending', null, `Conversion recorded via ${source}`)],

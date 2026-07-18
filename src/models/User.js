@@ -8,6 +8,9 @@ const userSchema = new mongoose.Schema(
     role: { type: String, enum: ['affiliate', 'admin', 'finance'], default: 'affiliate' },
     // Only affiliates get a referral code; null for admin/finance users
     referralCode: { type: String, default: null },
+    // Per-affiliate commission rate override. null = fall back to the
+    // program-wide ProgramConfig rate; a number (0–100) overrides it.
+    commissionRatePercent: { type: Number, default: null, min: 0, max: 100 },
     // { method: 'upi'|'bank'|'paypal', ...method-specific fields }; null until the affiliate adds one
     payoutMethodMap: { type: Object, default: null },
   },
@@ -28,6 +31,7 @@ export function publicUserMap(user) {
     email: user.email,
     role: user.role,
     referralCode: user.referralCode,
+    commissionRatePercent: user.commissionRatePercent ?? null,
     payoutMethodMap: user.payoutMethodMap || null,
     createdAt: user.createdAt,
   };
